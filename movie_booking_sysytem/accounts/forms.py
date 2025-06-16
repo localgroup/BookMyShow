@@ -38,3 +38,16 @@ class LoginForm(AuthenticationForm):
             'username': forms.TextInput(attrs={'class': 'form-control'}),
             'password': forms.PasswordInput(attrs={'class': 'form-control'}),
         }
+        
+        
+class IdentifyForm(forms.Form):
+    """
+    Form for identifying a user.
+    Inherits from ModelForm to include fields for username.
+    """
+    
+    username = forms.CharField(
+        max_length=150,
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        label='Username'
+    )
