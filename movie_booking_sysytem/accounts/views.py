@@ -12,6 +12,7 @@ from .forms import IdentifyForm
 from django.utils import timezone
 import datetime
 from .utils import generate_otp, enc_uname, dec_uname
+from django.contrib.auth.forms import SetPasswordForm
 
 
 # Create your views here.
@@ -106,6 +107,7 @@ def IdentifyUserView(request):
                 otp = generate_otp()
                 user.otp = otp
                 user.otp_expiry = timezone.now() + datetime.timedelta(minutes=10)  # OTP valid for 10 minutes
+                user.otp_verified = False  # Reset OTP verification status
                 user.save()
                 email = user.email
                 # Send OTP to user's email
@@ -128,7 +130,6 @@ def IdentifyUserView(request):
     return render(request, 'accounts/identify.html', context={'form': form})
 
 
-
 def OTPView(request, en_uname):
     """
     View to handle OTP verification.
@@ -143,17 +144,56 @@ def OTPView(request, en_uname):
                 return render(request, 'accounts/otp.html', context={'username': username})
             otp = int(otp_value)
             user = User.objects.get(username=username)
-            if user.otp == otp and user.otp_expiry > timezone.now():
-                user.otp_verified = True
-                user.save()
-                messages.success(request, "OTP verified successfully!")
-                return redirect('home')
+            # print(f"OTP: {otp}, User OTP: {user.otp}, OTP Expiry: {user.otp_expiry}")
+            if not user.otp_verified:
+                if user.otp and user.otp_expiry and user.otp == otp and user.otp_expiry > timezone.now():
+                    user.otp_verified = True
+                    user.save()
+                    messages.success(request, "OTP verified successfully!")
+                    en_uname = enc_uname(username)
+                    url = f"{request.build_absolute_uri('/accounts/reset/')}{en_uname}"
+                    # url = f"/accounts/verifyotp/{en_uname}/"
+                    return redirect(url)
+                else:
+                    messages.error(request, "Invalid OTP or OTP expired.")
+                    return render(request, 'accounts/otp.html', context={'username': username})
             else:
-                messages.error(request, "Invalid OTP or OTP expired.")
-                return render(request, 'accounts/otp.html', context={'username': username})
+                messages.error(request, "OTP already verified.")
+                return redirect('identify_user')
         else:
             # Render the OTP form for GET requests
             return render(request, 'accounts/otp.html', context={'username': username})
     messages.error(request, "Invalid or expired OTP link.")
     return redirect('login')
+
+
+def ResetPasswordView(request, en_uname):
+    """
+    View to reset the user's password.
+    This is a placeholder view; actual password reset logic should be implemented.
+    """
+    try:
+        username = dec_uname(en_uname)
+    except Exception as e:
+        messages.error(request, "Invalid link.")
+        return redirect('login')
+    
+    if username:
+        if User.objects.filter(username=username).exists():
+            user = User.objects.get(username=username)
+            if request.method == 'POST':
+                form = SetPasswordForm(user, request.POST)
+                if form.is_valid():
+                    form.save()
+                    messages.success(request, "Password reset successfully!")
+                    return redirect('login')
+            else:
+                form = SetPasswordForm(user)
+            return render(request, 'accounts/reset_password.html', context={'form': form, 'username': username})
+        else:
+            messages.error(request, "User not found.")
+            return redirect('login')
+    messages.error(request, "Invalid or expired link.")
     return redirect('login')
+
+

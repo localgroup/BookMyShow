@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Movie Dashboard{% endblock title %}
+
+{% block content %}
+
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #222; color: #eee; }
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .movie-card {
+            background: #333;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .movie-card img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .movie-info h2 { margin: 0 0 5px; color: #ff9800; font-size: 1.2em; }
+        .movie-info p { margin: 4px 0; font-size: 0.9em; }
+        .movie-dashboard {
+            max-width: 1200px;
+            margin: 20px auto;
+        }
+        a {
+            color: #03A9F4;
+            text-decoration: none;
+        }
+        .synopsis {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+    </style>
+
+    <div class="movie-dashboard">
+        <h1> Movie Dashboard</h1>
+        <div class="movie-grid">
+            {% for movie in movies %}
+                <div class="movie-card">
+                    <img src="{{ movie.movie_image }}" alt="{{ movie.title }} poster">
+                    <div class="movie-info">
+                        <h2>
+                            <a href="{% url 'movie_detail' movie.id %}">
+                                {{ movie.title }} ({{ movie.release_date|date:"Y" }})
+                            </a>
+                        </h2>
+                        <p><strong>Genre:</strong> {{ movie.genre }}</p>
+                        <p><strong>Language:</strong> {{ movie.language }}</p>
+                        <p><strong>Duration:</strong> {{ movie.duration_minutes }} min</p>
+                        <p><strong>Status:</strong> {{ movie.status }}</p>
+                        <p class="synopsis">{{ movie.synopsis }}</p>
+                        <a href="{{ movie.trailer_url }}" target="_blank">Watch Trailer</a>
+                    </div>
+                </div>
+            {% empty %}
+                <p>No movies found.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+{% endblock %}

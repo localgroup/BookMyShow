@@ -1,9 +1,38 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-
-    <h1 class="text-center">OTP Verification</h1>
-    <input type="number" name="otp" id="otp" class="form-control" placeholder="Enter OTP" required>
-    <button class="btn btn-primary mt-3" id="verifyOtp">Verify OTP</button>
-
-{% endblock  %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h3>Verify OTP</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="form-group mb-3">
+                            <label for="otp">Enter OTP sent to your email</label>
+                            <input type="text" class="form-control" id="otp" name="otp" required maxlength="6">
+                        </div>
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary">Verify OTP</button>
+                        </div>
+                    </form>
+                    <div class="mt-3 text-center">
+                        <small>Didn't receive OTP? <a href="">Resend OTP</a></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

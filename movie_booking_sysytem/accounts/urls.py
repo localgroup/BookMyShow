@@ -9,4 +9,5 @@ urlpatterns = [
     path('signout/', views.LogoutView, name='logout'),
     path('identify/', views.IdentifyUserView, name='identify_user'),
     path('verifyotp/<en_uname>/', views.OTPView, name='otp'),
+    path('reset/<en_uname>/', views.ResetPasswordView, name='reset_password'),
 ]
