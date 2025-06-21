@@ -1,18 +1,21 @@
 from django.shortcuts import render, get_object_or_404
-from .models import Movie
+from movies.models import Movie
+from django.db.models import Avg, Sum, Count
+from reviews.models import Review
 
 # Create your views here.
 
 
-def movie_dashboard(request):
-    movies = Movie.objects.all().order_by('-release_date')
-    return render(request, 'movies/dashboard/dashboard.html', {'movies': movies})
-
-
-def movie_detail(request, movie_id):
-    movie = get_object_or_404(Movie, id=movie_id)
-    return render(request, 'movies/dashboard/detail.html', {'movie': movie})
-
-
-
-
+def MovieView(request, slug):
+    movie = Movie.objects.get(slug=slug)
+    casts = movie.cast.all()
+    # rating = 
+    # average_rating = Review.rating.aggregate(Avg('rating'))['rating__avg']
+    # reviews = movie.reviews.all()
+    return render(request, 'movies/movie_detail.html', {
+        'movie': movie,
+        'casts': casts,
+        'average_rating': Review.objects.filter(movie=movie).aggregate(Avg('rating'))['rating__avg'],
+        'total_reviews': Review.objects.filter(movie=movie).count(),
+        'reviews': Review.objects.filter(movie=movie).order_by('-created_at'),
+    })

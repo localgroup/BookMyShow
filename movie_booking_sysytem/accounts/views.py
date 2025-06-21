@@ -13,6 +13,7 @@ from django.utils import timezone
 import datetime
 from .utils import generate_otp, enc_uname, dec_uname
 from django.contrib.auth.forms import SetPasswordForm
+from dashboard.views import movie_dashboard
 
 
 # Create your views here.
@@ -60,7 +61,7 @@ def LoginView(request):
             if user is not None:
                 login(request, user)
                 messages.success(request, "Login successful!")
-                return redirect('home')
+                return redirect('movie_dashboard')  # Redirect to the dashboard page
             
         else:
             messages.error(request, "Invalid username or password.")
@@ -70,16 +71,13 @@ def LoginView(request):
     return render(request, 'accounts/login.html', context={'form': form})
 
 
-@login_required(login_url='login')
+# @login_required(login_url='login')
 def HomeView(request):
     """
     View for the home page.
     Displays a welcome message to the user.
     """
-    if request.user.is_authenticated:
-        return render(request, 'accounts/home.html', context={'user': request.user})
-    else:
-        return redirect('login')
+    return redirect('movie_dashboard')
     
     
 def LogoutView(request):
@@ -89,7 +87,7 @@ def LogoutView(request):
     """
     logout(request)
     messages.success(request, "You have been logged out successfully.")
-    return redirect('login')
+    return redirect('movie_dashboard')
 
 
 def IdentifyUserView(request):

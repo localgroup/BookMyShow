@@ -1,3 +1,26 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
+from .models import Movie
+from reviews.views import add_review
 
 # Create your views here.
+
+
+def movie_dashboard(request):
+    movies = Movie.objects.all().order_by('-release_date')
+    return render(request, 'dashboard/dashboard.html', context={'movies': movies})
+
+
+def movie_detail(request, slug):
+    movie = get_object_or_404(Movie, slug=slug)
+    rating_range = range(1, 11) 
+
+    if request.method == 'POST':
+        # Call add_review and pass the request and movie (or movie id/slug as needed)
+        response = add_review(request, slug)
+        if response:  # If add_review returns a redirect or response, return it
+            return response
+
+    return render(request, 'dashboard/detail.html', context={'movie': movie, 'rating_range': rating_range})
+
+
+
