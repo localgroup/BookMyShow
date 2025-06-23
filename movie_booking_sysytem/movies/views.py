@@ -9,13 +9,7 @@ from reviews.models import Review
 def MovieView(request, slug):
     movie = Movie.objects.get(slug=slug)
     casts = movie.cast.all()
-    # rating = 
-    # average_rating = Review.rating.aggregate(Avg('rating'))['rating__avg']
-    # reviews = movie.reviews.all()
-    return render(request, 'movies/movie_detail.html', {
-        'movie': movie,
-        'casts': casts,
-        'average_rating': Review.objects.filter(movie=movie).aggregate(Avg('rating'))['rating__avg'],
-        'total_reviews': Review.objects.filter(movie=movie).count(),
-        'reviews': Review.objects.filter(movie=movie).order_by('-created_at'),
-    })
+    average_rating = movie.reviews.aggregate(Avg('rating'))['rating__avg']
+    
+    return render(request, 'templates/dashboard/movie_detail.html', {
+        'movie': movie,})
