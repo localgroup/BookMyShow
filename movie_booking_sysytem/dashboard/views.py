@@ -16,10 +16,10 @@ def movie_detail(request, slug):
     movie = get_object_or_404(Movie, slug=slug)
     rating_range = range(1, 11) 
     average_rating = movie.reviews.aggregate(Avg('rating'))['rating__avg']
-    if (average_rating - int(average_rating)) > 0:
-        average_rating = '{:.1f}'.format(average_rating)
-    else:
-        average_rating = int(average_rating)
+    # if (average_rating - int(average_rating)) > 0:
+    #     average_rating = '{:.1f}'.format(average_rating)
+    # else:
+    #     average_rating = int(average_rating)
 
     if request.method == 'POST':
         # Call add_review and pass the request and movie (or movie id/slug as needed)
@@ -28,7 +28,8 @@ def movie_detail(request, slug):
             return response
 
     return render(request, 'dashboard/detail.html', 
-                  context={'movie': movie, 'rating_range': rating_range, 'average_rating': average_rating}
+                  context={'movie': movie, 'rating_range': rating_range, 
+                           'average_rating': average_rating}
                   )
 
 

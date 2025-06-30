@@ -127,6 +127,11 @@
                     {% endif %}
                 </div>
                 {% if user.is_authenticated %}
+                    <a href="{% url 'theater_showtime' movie.slug %}" class="btn btn-success btn-lg mb-4">
+                        <i class="bi bi-ticket-perforated"></i> Book Ticket
+                    </a>
+                {% endif %}
+                {% if user.is_authenticated %}
                     <div class="mb-3">
                         <h5 class="text-primary">Rate this movie</h5>
                         <form method="post" action="" class="needs-validation" novalidate>

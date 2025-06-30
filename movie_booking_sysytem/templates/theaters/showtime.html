@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Showtime Details{% endblock %}
+
+{% block content %}
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .movie-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .date-bar {
+            display: flex;
+            overflow-x: auto;
+            padding: 10px 0;
+            margin-bottom: 30px;
+        }
+
+        .date-bar a {
+            flex: 0 0 auto;
+            text-align: center;
+            margin-right: 10px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            background-color: #e9ecef;
+            color: #000;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .date-bar a.active {
+            background-color: #dc3545;
+            color: #fff;
+        }
+
+        .theater-card {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .theater-card h5 {
+            margin-bottom: 10px;
+        }
+
+        .tags span {
+            background-color: #e0e0e0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-right: 5px;
+            font-size: 0.85rem;
+        }
+
+        .showtime-slot {
+            display: inline-block;
+            margin: 6px 6px 6px 0;
+            padding: 8px 14px;
+            border: 1px solid #198754;
+            border-radius: 5px;
+            color: #198754;
+            background-color: #e6fff2;
+            font-weight: 500;
+            text-decoration: none;
+            transition: 0.2s ease-in-out;
+        }
+
+        .showtime-slot:hover {
+            background-color: #d4f8e8;
+        }
+
+        .no-show {
+            text-align: center;
+            color: #888;
+            font-size: 1.1rem;
+            margin-top: 50px;
+        }
+    </style>
+
+    <div class="date-bar">
+        {% for day in date_range %}
+            <a href="{% url 'theater_showtime_date' movie.slug day %}" class="{% if day|stringformat:"Y-m-d" == date_str %}active{% endif %}">
+                {{ day|date:"D" }}<br>{{ day|date:"d M" }}
+            </a>
+        {% endfor %}
+    </div>
+
+    {% if showtimes %}
+        {% for show in showtimes %}
+            <div class="theater-card">
+                <div class="movie-header mb-3">
+                    {{ movie.title }}
+                </div>
+                <h5>{{ show.theater.name }} ({{ show.theater.city }})</h5>
+                <div class="tags mb-2">
+                    <span>M-Ticket</span>
+                    <span>Food & Beverage</span>
+                    <span>Info</span>
+                </div>
+                <p class="text-muted">{{ show.theater.address }}</p>
+                <div>
+                    
+                    <a href="{% url 'seat_selection' show.showtime.id %}" class="showtime-slot h4 text-decoration-none text-danger fw-bold">
+                         
+                        {{ show.showtime.show_time|time:"h:i A" }} - Silver ₹{{ show.showtime.silver_seats }}
+                    </a>
+                    <a href="{% url 'seat_selection' show.showtime.id %}" class="showtime-slot h4 text-decoration-none text-danger fw-bold">
+                         
+                        {{ show.showtime.show_time|time:"h:i A" }} - Gold ₹{{ show.showtime.gold_seats }}
+                    </a>
+                    <a href="{% url 'seat_selection' show.showtime.id %}" class="showtime-slot h4 text-decoration-none text-danger fw-bold">
+                         
+                        {{ show.showtime.show_time|time:"h:i A" }} - Recliner ₹{{ show.showtime.platinum_seats }}
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="no-show">No showtimes available for the selected date.</div>
+    {% endif %}
+
+
+
+
+{% endblock %}

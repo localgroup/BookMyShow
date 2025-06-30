@@ -44,3 +44,9 @@ ENV/
 .env.development.local
 .env.test.local
 .env.production.local
+
+#python files
+add_showtime.py
+add_movie_cast.py
+add_theater.py
+add_seats.py
