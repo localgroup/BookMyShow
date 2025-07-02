@@ -3,130 +3,138 @@
 {% block title %}Seat Selection{% endblock title %}
 
 {% block content %}
-
-    <style>
-    .seat {
+<style>
+.container {
+    max-width: 900px;
+}
+.seat {
     display: inline-block;
     width: 40px;
     height: 40px;
-    margin: 5px;
+    margin: 4px;
     line-height: 40px;
     text-align: center;
     border-radius: 5px;
-    cursor: pointer;
     border: 1px solid #ccc;
     background-color: #e0e0e0;
-    font-weight: bold;
-    }
-
-    .seat.selected {
+    font-weight: 600;
+    cursor: pointer;
+}
+.seat.selected {
     background-color: #28a745;
     color: #fff;
-    }
-
-    .seat.booked {
+}
+.seat.booked {
     background-color: #6c757d;
-    cursor: not-allowed;
     color: #fff;
-    }
-    </style>
+    cursor: not-allowed;
+}
+.price-label {
+    font-size: 1.1rem;
+    margin-top: 25px;
+    margin-bottom: 10px;
+}
+.row-label {
+    font-weight: bold;
+}
+</style>
 
+<div class="container my-5">
+    <h2 class="mb-3">{{ showtime.movie_name.title }}</h2>
+    <h5>{{ showtime.theater.name }}</h5>
+    <p class="text-muted">{{ showtime.theater.address }}</p>
+    <p><strong>Showtime:</strong> {{ showtime.show_time|date:"d M Y, h:i A" }}</p>
+    <hr>
 
-    <div class="container my-5">
-        <h2 class="mb-4">{{ showtime.movie_name.title }}</h2>
-        <h4>{{ showtime.theater.name }}</h4>
-        <p class="text-muted">{{ showtime.theater.address }}</p>
-        <p><strong>Showtime:</strong> {{ showtime.show_time|date:"d M Y, h:i A" }}</p>
+    {% for seat_type in seat_types %}
+    <h5 class="price-label text-uppercase text-{{ seat_type|lower }}">
+        {{ seat_type }} (₹
+        {% if seat_type == 'Recliner' %}
+            {{ showtime.platinum_seats }}
+        {% elif seat_type == 'Gold' %}
+            {{ showtime.gold_seats }}
+        {% else %}
+            {{ showtime.silver_seats }}
+        {% endif %}
+        )
+    </h5>
+    
+    {% for row_label, seats in seat_rows.items %}
+        {% if row_label.1|lower == seat_type|lower %}
+            <div class="mb-2">
+                <span class="row-label">{{ row_label.0 }}</span>
+                {% for seat in seats %}
+                    {% if seat == 0 %}
+                        <div class="seat booked">X</div>
+                    {% else %}
+                        <div class="seat {% if seat == 0 %}booked{% endif %}"
+                            {% if seat != 0 %} onclick="toggleSeat(this, '{{ seat.id }}', '{{ row_label.1 }}')" {% endif %}>
+                            {% if seat != 0 %}{{ seat.seat_number }}{% else %}X{% endif %}
+                        </div>
 
-        <hr>
-
-        <h5 class="mt-4">Seats:</h5>
-
-        <!-- Recliner -->
-        <h6 class="mt-3 text-danger">Recliner (₹{{ showtime.platinum_seats }})</h6>
-        {% for row_label, seats in seat_rows.items %}
-        <div class="mt-3">
-            <strong>{{ row_label.0 }} - {{ row_label.1|upper }}</strong><br>
-            {% for seat in seats %}
-                <div class="seat" 
-                    onclick="toggleSeat(this, '{{ seat.id }}', '{{ row_label.1 }}')">
-                    {{ seat.seat_number }}
-                </div>
-            {% endfor %}
-        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
     {% endfor %}
-
-        <!-- Gold -->
-        <h6 class="mt-4 text-warning">Gold (₹{{ showtime.gold_seats }})</h6>
-        {% for row_label, seats in seat_rows.items %}
-        <div class="mt-3">
-            <strong>{{ row_label.0 }} - {{ row_label.1|upper }}</strong><br>
-            {% for seat in seats %}
-                <div class="seat" 
-                    onclick="toggleSeat(this, '{{ seat.id }}', '{{ row_label.1 }}')">
-                    {{ seat.seat_number }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endfor %}
-
-        <!-- Silver -->
-        <h6 class="mt-4 text-secondary">Silver (₹{{ showtime.silver_seats }})</h6>
-        {% for row_label, seats in seat_rows.items %}
-        <div class="mt-3">
-            <strong>{{ row_label.0 }} - {{ row_label.1|upper }}</strong><br>
-            {% for seat in seats %}
-                <div class="seat" 
-                    onclick="toggleSeat(this, '{{ seat.id }}', '{{ row_label.1 }}')">
-                    {{ seat.seat_number }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endfor %}
+{% endfor %}
 
     <div class="mt-4">
         <h5>Selected Seats: <span id="selected-seats">None</span></h5>
-        <h5>Total Amount: <span id="total-amount">₹0</span></h5>
+        <h5>Total Amount: ₹<span id="total-amount">0</span></h5>
     </div>
 
+    <form method="post" action="{% url 'booking_ticket' showtime.id %}" class="mt-3" onsubmit="return prepareBooking();">
+        {% csrf_token %}
+        <input type="hidden" name="selected_seats" id="selected-seats-input">
+        <input type="hidden" name="total_amount" id="total-amount-input">
+        <button type="submit" class="btn btn-danger btn-lg w-100 mt-3">Proceed to Pay ₹<span id="pay-amount">0</span></button>
+    </form>
+</div>
 
-        <form method="post" action="{% url 'booking_ticket' showtime.id %}" class="mt-4">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-primary mt-4">Pay ₹{{ total_amount }}</button>
-        </form>
+<script>
+let selectedSeats = [];
+let seatPrice = {
+    'silver': {{ showtime.silver_seats|default:150 }},
+    'gold': {{ showtime.gold_seats|default:250 }},
+    'recliner': {{ showtime.platinum_seats|default:400 }}
+};
 
-    </div>
+function toggleSeat(seatEl, seatId, seatType) {
+    if (seatEl.classList.contains('booked')) return;
 
-
-
-    <script>
-    let selectedSeats = [];
-    let seatPrice = {
-        'silver': {{ showtime.silver_seats|default:150 }},
-        'gold': {{ showtime.gold_seats|default:250 }},
-        'recliner': {{ showtime.platinum_seats|default:400 }}
-    };
-
-    function toggleSeat(seatEl, seatId, seatType) {
-        if (seatEl.classList.contains('booked')) return;
-
-        seatEl.classList.toggle('selected');
-
-        if (seatEl.classList.contains('selected')) {
-            selectedSeats.push({ id: seatId, type: seatType });
-        } else {
-            selectedSeats = selectedSeats.filter(seat => seat.id !== seatId);
-        }
-
-        updateSummary();
+    seatEl.classList.toggle('selected');
+    
+    const seatNumber = seatEl.innerText;
+    
+    if (seatEl.classList.contains('selected')) {
+        selectedSeats.push({ 
+            id: seatId, 
+            type: seatType,
+            key: seatNumber  // Add this for the tickets array
+        });
+    } else {
+        selectedSeats = selectedSeats.filter(seat => seat.id !== seatId);
     }
 
-    function updateSummary() {
-        let totalAmount = selectedSeats.reduce((sum, seat) => sum + seatPrice[seat.type], 0);
-        document.getElementById('selected-seats').innerText = selectedSeats.map(s => s.id).join(', ') || 'None';
-        document.getElementById('total-amount').innerText = '₹' + totalAmount;
+    updateSummary();
+}
+
+function updateSummary() {
+    let totalAmount = selectedSeats.reduce((sum, seat) => sum + seatPrice[seat.type], 0);
+    document.getElementById('selected-seats').innerText = selectedSeats.map(s => s.id).join(', ') || 'None';
+    document.getElementById('total-amount').innerText = totalAmount;
+    document.getElementById('pay-amount').innerText = totalAmount;
+}
+
+function prepareBooking() {
+    if (selectedSeats.length === 0) {
+        alert("Please select at least one seat.");
+        return false;
     }
-    </script>
-
-
+    document.getElementById('selected-seats-input').value = JSON.stringify(selectedSeats);
+    document.getElementById('total-amount-input').value = selectedSeats.reduce((sum, seat) => sum + seatPrice[seat.type], 0);
+    return true;
+}
+</script>
 {% endblock %}

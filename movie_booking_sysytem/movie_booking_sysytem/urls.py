@@ -26,8 +26,8 @@ urlpatterns = [
     path('', include('dashboard.urls')),
     path('movies/', include('movies.urls')),
     path('bookings/', include('bookings.urls')),
-    # path('theaters/', include('theaters.urls')),
-    # path('payments/', include('payments.urls')),
+    path('theaters/', include('theaters.urls')),
+    path('payments/', include('payments.urls')),
     # path('reviews/', include('reviews.urls')),
 ]
 

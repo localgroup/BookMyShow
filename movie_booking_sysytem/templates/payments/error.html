@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Payment Error</title>
+    <style>
+        body {
+            background-color: #f8d7da;
+            color: #721c24;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 80px;
+        }
+        .error-container {
+            background: #fff;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            display: inline-block;
+            padding: 40px 60px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+        a {
+            color: #721c24;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <h1>Payment Failed</h1>
+        <p>We're sorry, but there was an error processing your payment.</p>
+        <p>Please try again or contact support if the problem persists.</p>
+        <a href="{% url 'payments:retry' %}">Try Again</a>
+        <br><br>
+        <a href="{% url 'home' %}">Return to Home</a>
+    </div>
+</body>
+</html>

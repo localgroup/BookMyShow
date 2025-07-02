@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Booking Confirmation{% endblock %}
+
+{% block content %}
+
+
+<div class="container my-5">
+    <div class="text-center alert alert-success p-4 rounded">
+        <h2 class="mb-3">Booking Summary!</h2>
+    </div>
+
+    <hr>
+    <p><strong>Tickets:</strong>
+        {% if tickets %}
+            {% if tickets|length > 1 %}
+                {{ tickets|join:", " }}
+            {% else %}
+                {{ tickets }}
+            {% endif %}
+        {% else %}
+            None
+        {% endif %}
+    </p>
+    <p><strong>Convenience fee:</strong> ₹{{ convenience_fee }}</p>
+    <p><strong>Total Amount:</strong> ₹{{ total_amount }}</p>
+    <p><strong>Sub total:</strong> ₹{{ sub_total }}</p>
+    <p><strong>Booking Time:</strong> {{ booking_time|date:"d M Y, h:i A" }}</p>
+
+
+    <form method="post" action="{% url 'pay' booking_id %}" class="mt-3">
+        {% csrf_token %}
+        <button type="submit" id="checkout-button">Pay</button>
+    </form>
+
+    <a href="{% url 'home' %}" class="btn btn-primary mt-4">Go to Home</a>
+</div>
+
+{% endblock %}

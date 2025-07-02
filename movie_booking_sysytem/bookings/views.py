@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from movies.models import Movie
 from theaters.models import Theater
 from django.contrib import messages
@@ -9,6 +9,7 @@ import json
 from accounts.models import User
 from bookings.models import Booking, BookingSeat
 from django.shortcuts import HttpResponse
+from django.conf import settings
 
 
 
@@ -86,11 +87,16 @@ def SeatSelectionView(request, show_id):
         else:
             seat_rows[row].append(0)
             
+    seat_types = ['Recliner', 'Gold', 'Silver']
+    booked_seats_ids = [seat.id for seat in booked_seats]
+            
     context = {
         'movie': movie,
         'theater': theater,
         'showtime': showtime,
         'seat_rows': seat_rows,
+        'seat_types': seat_types,
+        'booked_seats': booked_seats_ids,
         }
     
     return render(request, 'theaters/seat_selection.html', context)
@@ -106,7 +112,8 @@ def BookTicketView(request, show_id):
 
     if request.method == 'POST':
         selected_seats = json.loads(request.POST['selected_seats'])
-        total_amount = eval(request.POST['total_amount'])
+        # total_amount = eval(request.POST['total_amount'])
+        total_amount = float(request.POST['total_amount'])
         tickets = []
         user = User.objects.get(username=request.user.username)
         convenience_fee = total_amount * 0.1
@@ -119,7 +126,7 @@ def BookTicketView(request, show_id):
         booking = Booking.objects.create(
             user=user,
             show_time=show_time,
-            total_amount=sub_total
+            total_amount=sub_total,
         )
         
 
@@ -133,7 +140,21 @@ def BookTicketView(request, show_id):
                 seat=seat_obj,
                 show_time=show_time
                 )
-        return HttpResponse('Booking Initiated')
+            
+        context = {
+            'tickets': tickets,
+            'convenience_fee': convenience_fee,
+            'sub_total': sub_total,
+            'total_amount': total_amount,
+            'booking_time': Booking.objects.get(id=booking.id).booking_time,
+            'booking': booking,
+            'movie': show_time.movie_name,
+            'stripe_public_key': settings.STRIPE_TEST_PUBLIC_KEY,
+            'booking_id': booking.id,
+        }
+        
+        messages.success(request, 'Booking confirmed successfully!')
+        return render(request, 'bookings/booking_confirmation.html', context)
 
     return HttpResponse('Invalid request...')
 
